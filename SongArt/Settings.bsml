@@ -1,0 +1,11 @@
+﻿<bg xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance' xsi:schemaLocation='https://monkeymanboy.github.io/BSML-Docs/ https://raw.githubusercontent.com/monkeymanboy/BSML-Docs/gh-pages/BSMLSchema.xsd'>
+	<settings-container>
+		<bool-setting text='Fade Out' value='fade-enable' hover-hint='Allows the cover art to fade out after a specified amount of time'></bool-setting>
+		<slider-setting text='Fade Delay' value='fade-delay' hover-hint='The time (in seconds) that the cover art lasts until it fades out' min='0' max='60' integer-only='true' increment='1'></slider-setting>
+		<slider-setting text='Transparency' value='transparency' hover-hint='How transparent the cover art appears' min='0' max='1' integer-only='false' increment='0.05'></slider-setting>
+		<bool-setting text='Multiplicative Blending' value='mul-blending' hover-hint='Makes dark parts of the cover see through and light parts opaque'></bool-setting>
+		<slider-setting text='Distance' value='distance' hover-hint='The distance the cover art is from the player' min='5' max='100' integer-only='true' increment='1'></slider-setting>
+		<slider-setting text='Y Offset' value='y-offset' hover-hint='The distance the cover art is from the ground' min='0' max='20' integer-only='true' increment='1'></slider-setting>
+		<slider-setting text='Scale' value='scale' hover-hint='The scale of the cover art' min='0' max='30' integer-only='true' increment='1'></slider-setting>
+	</settings-container>
+</bg>
