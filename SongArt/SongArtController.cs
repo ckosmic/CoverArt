@@ -72,22 +72,28 @@ namespace SongArt
 				// Averages the light colors and tints the cover art that color
 				// It's a close enough approximation to the ambient color of the scene
 				Vector4 values = Vector4.zero;
+				int lightCount = 0;
 				foreach (EnvironmentLight light in lights) {
 					light.UpdateLight();
-					values.x += light.LightColor.r;
-					values.y += light.LightColor.g;
-					values.z += light.LightColor.b;
+					if (light.LightColor.a > 0.5f) {
+						values.x += light.LightColor.r;
+						values.y += light.LightColor.g;
+						values.z += light.LightColor.b;
+						lightCount++;
+					}
 					values.w += light.LightColor.a;
 				}
-				values.x /= lights.Length;
-				values.y /= lights.Length;
-				values.z /= lights.Length;
+				if (lightCount > 0) {
+					values.x /= lightCount;
+					values.y /= lightCount;
+					values.z /= lightCount;
+				}
 				values.w /= lights.Length;
 				values.w *= 100;
 				values.w *= values.w;
 				values.w /= 100;
 				values.w = Mathf.Clamp01(values.w);
-				Color tintColor = new Color(values.x, values.y, values.z, values.w);
+				Color tintColor = new Color(values.x / 2, values.y / 2, values.z / 2, values.w);
 				coverMaterial.SetColor("_TintColor", tintColor);
 			}
 		}
@@ -183,11 +189,19 @@ namespace SongArt
 						lights[lightId].State = 0;
 						lights[lightId].LightColor = envColor0;
 						break;
+					case 2: // Light flashes blue, just repeat case 1
+						lights[lightId].State = 0;
+						lights[lightId].LightColor = envColor0;
+						break;
 					case 3: // Light turns on to blue and fades out
 						lights[lightId].State = 1;
 						lights[lightId].LightColor = envColor0;
 						break;
 					case 5: // Light turns on to red
+						lights[lightId].State = 0;
+						lights[lightId].LightColor = envColor1;
+						break;
+					case 6: // Light flashes red, just repeat case 5
 						lights[lightId].State = 0;
 						lights[lightId].LightColor = envColor1;
 						break;
