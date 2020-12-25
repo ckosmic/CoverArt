@@ -40,17 +40,21 @@ namespace SongArt
 		private void Update() {
 			if (coverQuad != null) {
 				// Perform fading
-				if (PluginConfig.Instance.fadeEnabled && fadeTimer > 0 && Time.time >= fadeTimer) {
-					Color currentColor = coverMaterial.GetColor("_Color");
-					Color transparentColor = coverMaterial.GetColor("_Color");
-					transparentColor.a = 0;
-					if (currentColor.a <= 0) {
-						fadeTimer = -1;
-						currentColor.a = 0;
-						CleanUpCover();
+				if (fadeTimer > 0 && Time.time >= fadeTimer) {
+					if (PluginConfig.Instance.fadeEnabled) {
+						Color currentColor = coverMaterial.GetColor("_Color");
+						Color transparentColor = coverMaterial.GetColor("_Color");
+						transparentColor.a = 0;
+						if (currentColor.a <= 0) {
+							fadeTimer = -1;
+							currentColor.a = 0;
+							CleanUpCover();
+						}
+						coverMaterial.SetColor("_Color", Color.Lerp(currentColor, transparentColor, Time.deltaTime * 3));
 					}
-					coverMaterial.SetColor("_Color", Color.Lerp(currentColor, transparentColor, Time.deltaTime * 3));
 				}
+				float timeDiff = fadeTimer - Time.time;
+				timeDiff = Mathf.Clamp01(timeDiff);
 
 				// Spaghet... it works tho
 				// Averages the light colors and tints the cover art that color
@@ -77,7 +81,8 @@ namespace SongArt
 				values.w *= values.w;
 				values.w /= 100;
 				values.w = Mathf.Clamp01(values.w);
-				Color tintColor = new Color(values.x / 2, values.y / 2, values.z / 2, values.w);
+
+				Color tintColor = new Color(values.x / 2, values.y / 2, values.z / 2, values.w + timeDiff);
 				coverMaterial.SetColor("_TintColor", tintColor);
 			}
 		}
