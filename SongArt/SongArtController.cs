@@ -82,7 +82,7 @@ namespace SongArt
 				values.w /= 100;
 				values.w = Mathf.Clamp01(values.w);
 
-				Color tintColor = new Color(values.x / 2, values.y / 2, values.z / 2, values.w + timeDiff);
+				Color tintColor = new Color(values.x, values.y, values.z, values.w + timeDiff);
 				coverMaterial.SetColor("_TintColor", tintColor);
 			}
 		}
@@ -109,7 +109,8 @@ namespace SongArt
 			coverMaterial = new Material(coverShader);
 			coverMaterial.SetTexture("_MainTex", coverTexture);
 			coverMaterial.SetColor("_Color", new Color(1, 1, 1, PluginConfig.Instance.transparency));
-			if(PluginConfig.Instance.mulBlending)
+			coverMaterial.SetFloat("_Bloom", 0.2f);
+			if (PluginConfig.Instance.mulBlending)
 				coverMaterial.EnableKeyword("MULTIPLICATIVE_BLENDING");
 			coverRenderer.material = coverMaterial;
 

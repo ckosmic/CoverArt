@@ -20,5 +20,4 @@ All of the following settings can be adjusted using the in-game Mod Settings men
 
 ## Known Issues
 
-- Chroma colors are not currently supported
-- Additive light color can sometimes appear incorrect in some environments
+- Chroma light colors are not currently supported
