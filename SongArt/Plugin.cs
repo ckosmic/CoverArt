@@ -32,7 +32,7 @@ namespace SongArt
 			PluginConfig.Instance = config.Generated<PluginConfig>();
 			BSMLSettings.instance.AddSettingsMenu("Cover Art", $"SongArt.Settings.bsml", SettingsController.instance);
 
-			Log.Info("SongArt initialized.");
+			Log.Info("CoverArt initialized.");
 		}
 
 		#region BSIPA Config

@@ -1,7 +1,7 @@
 ﻿{
   "$schema": "https://raw.githubusercontent.com/bsmg/BSIPA-MetadataFileSchema/master/Schema.json",
-  "id": "SongArt",
-  "name": "SongArt",
+  "id": "CoverArt",
+  "name": "CoverArt",
   "author": "ckosmic",
   "version": "1.0.0",
   "description": "",
