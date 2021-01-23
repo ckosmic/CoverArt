@@ -1,4 +1,5 @@
-﻿using System;
+﻿using BS_Utils.Utilities;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -128,7 +129,7 @@ namespace SongArt
 			InitializeLights();
 		}
 
-		public void OnLevelDidFinish(StandardLevelScenesTransitionSetupDataSO scene, LevelCompletionResults result) {
+		public void OnLevelDidFinish(object sender, LevelFinishedEventArgs args) {
 			if (coverQuad != null) {
 				CleanUpCover();
 			}

@@ -53,7 +53,7 @@ namespace SongArt
 			new GameObject("SongArtController").AddComponent<SongArtController>();
 
 			BS_Utils.Utilities.BSEvents.gameSceneLoaded += SongArtController.Instance.OnGameSceneLoaded;
-			BS_Utils.Plugin.LevelDidFinishEvent += SongArtController.Instance.OnLevelDidFinish;
+			BS_Utils.Utilities.BSEvents.LevelFinished += SongArtController.Instance.OnLevelDidFinish;
 			BS_Utils.Utilities.BSEvents.levelSelected += SongArtController.Instance.OnLevelSelected;
 			BS_Utils.Utilities.BSEvents.beatmapEvent += SongArtController.Instance.OnBeatmapEvent;
 		}
@@ -63,7 +63,7 @@ namespace SongArt
 			Log.Debug("OnApplicationQuit");
 
 			BS_Utils.Utilities.BSEvents.gameSceneLoaded -= SongArtController.Instance.OnGameSceneLoaded;
-			BS_Utils.Plugin.LevelDidFinishEvent -= SongArtController.Instance.OnLevelDidFinish;
+			BS_Utils.Utilities.BSEvents.LevelFinished -= SongArtController.Instance.OnLevelDidFinish;
 			BS_Utils.Utilities.BSEvents.levelSelected -= SongArtController.Instance.OnLevelSelected;
 			BS_Utils.Utilities.BSEvents.beatmapEvent -= SongArtController.Instance.OnBeatmapEvent;
 		}
