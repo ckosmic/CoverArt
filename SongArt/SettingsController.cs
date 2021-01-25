@@ -57,6 +57,13 @@ namespace SongArt
 			set { PluginConfig.Instance.mulBlending = value; }
 		}
 
+		[UIValue("react-enable")]
+		public bool ReactEnabled
+		{
+			get { return PluginConfig.Instance.reactEnabled; }
+			set { PluginConfig.Instance.reactEnabled = value; }
+		}
+
 		[UIAction("#apply")]
 		public void OnApply() { 
 			

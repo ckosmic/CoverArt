@@ -7,20 +7,21 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using UnityEngine;
+using IPA.Utilities;
 
 namespace SongArt
 {
 	public class SongArtController : MonoBehaviour {
 		public static SongArtController Instance { get; private set; }
 
-		private GameObject coverQuad;
-		private Texture2D coverTexture;
-		private Material coverMaterial;
-		private float fadeTimer;
-		private Shader coverShader;
-		private Color envColor0;
-		private Color envColor1;
-		private EnvironmentLight[] lights;
+		private GameObject _coverQuad;
+		private Texture2D _coverTexture;
+		private Material _coverMaterial;
+		private float _fadeTimer;
+		private Shader _coverShader;
+		private Color _envColor0;
+		private Color _envColor1;
+		private EnvironmentLight[] _lights;
 
 		private void Awake() {
 			if (Instance != null) {
@@ -35,26 +36,18 @@ namespace SongArt
 
 		private void Start() {
 			AssetBundle bundle = AssetBundleManager.LoadAssetBundleFromResource($"SongArt.songart");
-			coverShader = bundle.LoadAsset<Shader>("Assets/Shaders/CoverArt.shader");
+			_coverShader = bundle.LoadAsset<Shader>("Assets/Shaders/CoverArt.shader");
 		}
 
 		private void Update() {
-			if (coverQuad != null) {
+			if (_coverQuad != null) {
 				// Perform fading
-				if (fadeTimer > 0 && Time.time >= fadeTimer) {
-					if (PluginConfig.Instance.fadeEnabled) {
-						Color currentColor = coverMaterial.GetColor("_Color");
-						Color transparentColor = coverMaterial.GetColor("_Color");
-						transparentColor.a = 0;
-						if (currentColor.a <= 0) {
-							fadeTimer = -1;
-							currentColor.a = 0;
-							CleanUpCover();
-						}
-						coverMaterial.SetColor("_Color", Color.Lerp(currentColor, transparentColor, Time.deltaTime * 3));
-					}
+				if (_fadeTimer > 0 && Time.time >= _fadeTimer && PluginConfig.Instance.fadeEnabled) {
+					StartCoroutine(FadeOutCover());
+					_fadeTimer = -1;
 				}
-				float timeDiff = fadeTimer - Time.time;
+
+				float timeDiff = _fadeTimer - Time.time;
 				timeDiff = Mathf.Clamp01(timeDiff);
 
 				// Spaghet... it works tho
@@ -62,7 +55,7 @@ namespace SongArt
 				// It's a close enough approximation to the ambient color of the scene
 				Vector4 values = Vector4.zero;
 				int lightCount = 0;
-				foreach (EnvironmentLight light in lights) {
+				foreach (EnvironmentLight light in _lights) {
 					light.UpdateLight();
 					if (light.LightColor.a > 0.5f) {
 						values.x += light.LightColor.r;
@@ -77,14 +70,21 @@ namespace SongArt
 					values.y /= lightCount;
 					values.z /= lightCount;
 				}
-				values.w /= lights.Length;
+				values.w /= _lights.Length;
 				values.w *= 100;
 				values.w *= values.w;
 				values.w /= 100;
-				values.w = Mathf.Clamp01(values.w);
+				values.w = Mathf.Clamp01(values.w + timeDiff);
 
-				Color tintColor = new Color(values.x, values.y, values.z, values.w + timeDiff);
-				coverMaterial.SetColor("_TintColor", tintColor);
+				Color tintColor = new Color(values.x, values.y, values.z, values.w);
+				_coverMaterial.SetColor("_TintColor", tintColor);
+
+				if (PluginConfig.Instance.reactEnabled) {
+					List<float> processedSamples = SpectrogramData.Instance.GetProcessedSamples();
+					if (processedSamples != null) {
+						_coverQuad.transform.localScale = Vector3.one * (PluginConfig.Instance.scale + Mathf.Sqrt(processedSamples[5] * 50));
+					}
+				}
 			}
 		}
 
@@ -96,42 +96,45 @@ namespace SongArt
 		}
 
 		public void OnGameSceneLoaded() {
-			fadeTimer = Time.time + PluginConfig.Instance.fadeDelay;
+			_fadeTimer = Time.time + PluginConfig.Instance.fadeDelay;
 
 			// Create cover image quad
-			coverQuad = GameObject.CreatePrimitive(PrimitiveType.Quad);
-			coverQuad.transform.position = new Vector3(0, PluginConfig.Instance.yOffset, PluginConfig.Instance.distance);
-			coverQuad.transform.localScale = Vector3.one * PluginConfig.Instance.scale;
-			coverQuad.transform.localEulerAngles = new Vector3(0, 0, 0);
-			coverQuad.layer = 13;
+			_coverQuad = GameObject.CreatePrimitive(PrimitiveType.Quad);
+			_coverQuad.transform.position = new Vector3(0, PluginConfig.Instance.yOffset, PluginConfig.Instance.distance);
+			_coverQuad.transform.localScale = Vector3.one * PluginConfig.Instance.scale;
+			_coverQuad.transform.localEulerAngles = new Vector3(0, 0, 0);
+			_coverQuad.layer = 13;
 
 			// Create cover material using the CoverArt shader and assign it to the cover quad
-			MeshRenderer coverRenderer = coverQuad.GetComponent<MeshRenderer>();
-			coverMaterial = new Material(coverShader);
-			coverMaterial.SetTexture("_MainTex", coverTexture);
-			coverMaterial.SetColor("_Color", new Color(1, 1, 1, PluginConfig.Instance.transparency));
-			coverMaterial.SetFloat("_Bloom", 0.2f);
+			MeshRenderer coverRenderer = _coverQuad.GetComponent<MeshRenderer>();
+			_coverMaterial = new Material(_coverShader);
+			_coverMaterial.SetTexture("_MainTex", _coverTexture);
+			_coverMaterial.SetColor("_Color", new Color(1, 1, 1, PluginConfig.Instance.transparency));
+			_coverMaterial.SetFloat("_Bloom", 0.2f);
 			if (PluginConfig.Instance.mulBlending)
-				coverMaterial.EnableKeyword("MULTIPLICATIVE_BLENDING");
-			coverRenderer.material = coverMaterial;
+				_coverMaterial.EnableKeyword("MULTIPLICATIVE_BLENDING");
+			coverRenderer.material = _coverMaterial;
 
 			// Get environment colors
 			SimpleColorSO[] simpleColors = Resources.FindObjectsOfTypeAll<SimpleColorSO>();
 			for (int i = 0; i < simpleColors.Length; i++) {
 				string name = simpleColors[i].name;
 				if (name == "EnvironmentColor0") {
-					envColor0 = simpleColors[i].color;
+					_envColor0 = simpleColors[i].color;
 				} else if (name == "EnvironmentColor1") {
-					envColor1 = simpleColors[i].color;
+					_envColor1 = simpleColors[i].color;
 				}
 			}
 
 			InitializeLights();
+
+			if(PluginConfig.Instance.reactEnabled)
+				SpectrogramData.Instance.GetBasicSpectrumData();
 		}
 
 		public void OnLevelDidFinish(object sender, LevelFinishedEventArgs args) {
-			if (coverQuad != null) {
-				CleanUpCover();
+			if (_coverQuad != null) {
+				StartCoroutine(FadeOutCover());
 			}
 		}
 
@@ -140,7 +143,7 @@ namespace SongArt
 			Task<Sprite> coverImageTask = previewBeatmapLevel.GetCoverImageAsync(cancellationToken);
 
 			Sprite coverSprite = await coverImageTask;
-			coverTexture = coverSprite.texture;
+			_coverTexture = coverSprite.texture;
 		}
 
 		public void OnBeatmapEvent(BeatmapEventData data) {
@@ -148,49 +151,68 @@ namespace SongArt
 			if (lightId >= 0 && lightId <= 5) {
 				switch (data.value) {
 					case 0: // Light turns off
-						lights[lightId].State = 0;
-						lights[lightId].LightColor = Color.clear;
+						_lights[lightId].State = 0;
+						_lights[lightId].LightColor = Color.clear;
 						break;
 					case 1: // Light turns on to blue
-						lights[lightId].State = 0;
-						lights[lightId].LightColor = envColor0;
+						_lights[lightId].State = 0;
+						_lights[lightId].LightColor = _envColor0;
 						break;
 					case 2: // Light flashes blue, just repeat case 1
-						lights[lightId].State = 0;
-						lights[lightId].LightColor = envColor0;
+						_lights[lightId].State = 0;
+						_lights[lightId].LightColor = _envColor0;
 						break;
 					case 3: // Light turns on to blue and fades out
-						lights[lightId].State = 1;
-						lights[lightId].LightColor = envColor0;
+						_lights[lightId].State = 1;
+						_lights[lightId].LightColor = _envColor0;
 						break;
 					case 5: // Light turns on to red
-						lights[lightId].State = 0;
-						lights[lightId].LightColor = envColor1;
+						_lights[lightId].State = 0;
+						_lights[lightId].LightColor = _envColor1;
 						break;
 					case 6: // Light flashes red, just repeat case 5
-						lights[lightId].State = 0;
-						lights[lightId].LightColor = envColor1;
+						_lights[lightId].State = 0;
+						_lights[lightId].LightColor = _envColor1;
 						break;
 					case 7: // Light turns on to red and fades out
-						lights[lightId].State = 1;
-						lights[lightId].LightColor = envColor1;
+						_lights[lightId].State = 1;
+						_lights[lightId].LightColor = _envColor1;
 						break;
 				}
 			}
 		}
 
+		public void OnLevelFailed(StandardLevelScenesTransitionSetupDataSO so, LevelCompletionResults results) {
+			if (_coverQuad != null) {
+				StartCoroutine(FadeOutCover());
+			}
+		}
+
 		public void InitializeLights() {
-			lights = new EnvironmentLight[6];
-			for (int i = 0; i < lights.Length; i++) {
-				lights[i] = new EnvironmentLight();
+			_lights = new EnvironmentLight[6];
+			for (int i = 0; i < _lights.Length; i++) {
+				_lights[i] = new EnvironmentLight();
 			}
 		}
 
 		private void CleanUpCover() {
-			Destroy(coverMaterial);
-			Destroy(coverQuad);
-			coverQuad = null;
-			coverMaterial = null;
+			Destroy(_coverMaterial);
+			Destroy(_coverQuad);
+			_coverQuad = null;
+			_coverMaterial = null;
+		}
+
+		IEnumerator FadeOutCover() {
+			Color currentColor = _coverMaterial.GetColor("_Color");
+			Color transparentColor = _coverMaterial.GetColor("_Color");
+			transparentColor.a = 0;
+			while (currentColor.a > 0.01f) {
+				currentColor = Color.Lerp(currentColor, transparentColor, Time.deltaTime * 3);
+				_coverMaterial.SetColor("_Color", currentColor);
+				yield return new WaitForEndOfFrame();
+			}
+			_fadeTimer = -1;
+			CleanUpCover();
 		}
 	}
 }

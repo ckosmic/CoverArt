@@ -51,11 +51,13 @@ namespace SongArt
 		public void OnApplicationStart() {
 			Log.Debug("OnApplicationStart");
 			new GameObject("SongArtController").AddComponent<SongArtController>();
+			new GameObject("SpectrogramData").AddComponent<SpectrogramData>();
 
 			BS_Utils.Utilities.BSEvents.gameSceneLoaded += SongArtController.Instance.OnGameSceneLoaded;
 			BS_Utils.Utilities.BSEvents.LevelFinished += SongArtController.Instance.OnLevelDidFinish;
 			BS_Utils.Utilities.BSEvents.levelSelected += SongArtController.Instance.OnLevelSelected;
 			BS_Utils.Utilities.BSEvents.beatmapEvent += SongArtController.Instance.OnBeatmapEvent;
+			BS_Utils.Utilities.BSEvents.levelFailed += SongArtController.Instance.OnLevelFailed;
 		}
 
 		[OnExit]
@@ -66,6 +68,7 @@ namespace SongArt
 			BS_Utils.Utilities.BSEvents.LevelFinished -= SongArtController.Instance.OnLevelDidFinish;
 			BS_Utils.Utilities.BSEvents.levelSelected -= SongArtController.Instance.OnLevelSelected;
 			BS_Utils.Utilities.BSEvents.beatmapEvent -= SongArtController.Instance.OnBeatmapEvent;
+			BS_Utils.Utilities.BSEvents.levelFailed -= SongArtController.Instance.OnLevelFailed;
 		}
 	}
 }

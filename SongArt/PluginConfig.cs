@@ -19,5 +19,6 @@ namespace SongArt
 		public int yOffset { get; set; } = 4;
 		public int scale { get; set; } = 8;
 		public bool mulBlending { get; set; } = false;
+		public bool reactEnabled { get; set; } = false;
 	}
 }
